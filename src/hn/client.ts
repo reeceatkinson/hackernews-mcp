@@ -7,6 +7,7 @@ import {
   type HnUpdates,
   type HnUser,
   type StoryFeed,
+  isHnUsername,
 } from "./types";
 
 const USER_AGENT = "hackernews-mcp/1.0 (+https://github.com/reeceatkinson/hackernews-mcp)";
@@ -55,6 +56,9 @@ export class HnClient {
   }
 
   async getUser(username: string): Promise<HnUser | null> {
+    if (!isHnUsername(username)) {
+      throw new HnApiError("Invalid username");
+    }
     return this.getJson<HnUser | null>(`${HN_API_BASE}/user/${encodeURIComponent(username)}.json`);
   }
 
