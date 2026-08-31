@@ -1,5 +1,4 @@
 import { createMcpHandler } from "agents/mcp/server";
-import { landingPage } from "./landing";
 import { createServer } from "./mcp";
 
 const mcp = createMcpHandler(createServer, { route: "/mcp" });
@@ -15,12 +14,6 @@ export default {
     if (url.pathname === "/health") {
       return new Response("ok\n", {
         headers: { "content-type": "text/plain; charset=utf-8" },
-      });
-    }
-
-    if (url.pathname === "/" || url.pathname === "/index.html") {
-      return new Response(landingPage(url.origin), {
-        headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
 

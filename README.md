@@ -36,12 +36,10 @@ npm install
 npm start
 ```
 
-- Landing page: `http://localhost:8787`
 - MCP endpoint: `http://localhost:8787/mcp`
 - Health: `http://localhost:8787/health`
 
 ```sh
-npm install
 npm test
 npm run check
 ```
