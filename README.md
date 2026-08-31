@@ -48,6 +48,8 @@ npm run deploy
 
 Endpoint: `https://hackernews-mcp.<your-subdomain>.workers.dev/mcp`.
 
+Custom domain: set `allowedHostnames` and `allowedOriginHostnames` on `createMcpHandler`. The default allowlist is localhost plus the Worker's `workers.dev` hostname.
+
 ## Connect a client
 
 ```json
