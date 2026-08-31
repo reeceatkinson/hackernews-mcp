@@ -60,6 +60,15 @@ describe("HnClient", () => {
     await expect(hn.requireUser("nope")).rejects.toBeInstanceOf(HnApiError);
   });
 
+  it("rejects usernames that would inject Algolia tags or path segments", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(null));
+    const hn = new HnClient({ fetchImpl });
+    await expect(hn.getUser("dang,story")).rejects.toBeInstanceOf(HnApiError);
+    await expect(hn.getUser("../item/1")).rejects.toBeInstanceOf(HnApiError);
+    await expect(hn.getUser("has space")).rejects.toBeInstanceOf(HnApiError);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("builds Algolia search URLs", async () => {
     const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
       const url = new URL(String(input));

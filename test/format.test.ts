@@ -26,6 +26,17 @@ describe("formatItem", () => {
   it("marks deleted items", () => {
     expect(formatItem({ id: 1, deleted: true })).toContain("was deleted");
   });
+
+  it("omits non-http item URLs", () => {
+    const text = formatItem({
+      id: 2,
+      type: "story",
+      title: "Nope",
+      url: "javascript:alert(1)",
+    });
+    expect(text).not.toContain("javascript:");
+    expect(text).not.toContain("URL:");
+  });
 });
 
 describe("formatStoryList", () => {

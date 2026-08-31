@@ -12,4 +12,8 @@ describe("htmlToText", () => {
       "See HN (https://news.ycombinator.com)",
     );
   });
+
+  it("drops javascript hrefs", () => {
+    expect(htmlToText('Click <a href="javascript:alert(1)">here</a>')).toBe("Click here");
+  });
 });

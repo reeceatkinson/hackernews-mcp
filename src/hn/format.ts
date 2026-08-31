@@ -1,6 +1,6 @@
 import { HN_SITE } from "./types";
 import type { AlgoliaHit, AlgoliaSearchResponse, CommentNode, HnItem, HnUser } from "./types";
-import { htmlToText } from "./html";
+import { htmlToText, safeHttpUrl } from "./html";
 
 export function itemUrl(id: number): string {
   return `${HN_SITE}/item?id=${id}`;
@@ -33,7 +33,8 @@ export function formatItem(item: HnItem, extras?: { pollOptions?: HnItem[] }): s
   if (typeof item.descendants === "number") lines.push(`Comments: ${item.descendants}`);
   if (item.parent) lines.push(`Parent: ${item.parent} (${itemUrl(item.parent)})`);
   if (item.poll) lines.push(`Poll: ${item.poll} (${itemUrl(item.poll)})`);
-  if (item.url) lines.push(`URL: ${item.url}`);
+  const url = safeHttpUrl(item.url);
+  if (url) lines.push(`URL: ${url}`);
   lines.push(`HN: ${itemUrl(item.id)}`);
 
   if (item.text) {
@@ -85,7 +86,8 @@ export function formatStoryList(
 
     lines.push(`${rank}. ${title}`);
     if (meta) lines.push(`   ${meta}`);
-    if (item.url) lines.push(`   ${item.url}`);
+    const url = safeHttpUrl(item.url);
+    if (url) lines.push(`   ${url}`);
     lines.push(`   ${itemUrl(item.id)}`);
     lines.push("");
   });
@@ -199,7 +201,8 @@ function formatHit(hit: AlgoliaHit): string {
     .join(" · ");
 
   const parts = [title, `   ${meta}`, `   ${itemUrl(Number(id))}`];
-  if (hit.url) parts.push(`   ${hit.url}`);
+  const url = safeHttpUrl(hit.url);
+  if (url) parts.push(`   ${url}`);
   if (hit.comment_text) parts.push(`   ${truncate(htmlToText(hit.comment_text), 280)}`);
   return parts.join("\n");
 }
