@@ -24,13 +24,15 @@ export function safeHttpUrl(url: string | null | undefined): string | undefined 
 /** Convert HN HTML (comments/about/Ask text) into readable plain text. */
 export function htmlToText(input: string): string {
   const source = input.length > MAX_HTML_CHARS ? input.slice(0, MAX_HTML_CHARS) : input;
+  const preBlocks: string[] = [];
   const withoutTags = source
     .replace(/<\s*p\s*>/gi, "\n\n")
     .replace(/<\s*br\s*\/?\s*>/gi, "\n")
     .replace(/<\s*\/\s*p\s*>/gi, "")
     .replace(/<\s*pre\s*>[\s\S]*?<\s*\/\s*pre\s*>/gi, (block) => {
-      const inner = block.replace(/<\s*\/?pre\s*>/gi, "").replace(/<\s*\/?code\s*>/gi, "");
-      return `\n${decodeEntities(inner)}\n`;
+      const inner = block.replace(/<\s*\/?(?:pre|code)\s*>/gi, "");
+      preBlocks.push(decodeEntities(inner));
+      return `\n\u0000pre${preBlocks.length - 1}\u0000\n`;
     })
     .replace(/<\s*a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\s*\/\s*a\s*>/gi, (_m, href, label) => {
       const text = decodeEntities(String(label).replace(/<[^>]+>/g, "")).trim();
@@ -41,6 +43,7 @@ export function htmlToText(input: string): string {
     .replace(/<[^>]+>/g, "");
 
   return decodeEntities(withoutTags)
+    .replace(/\u0000pre(\d+)\u0000/g, (_m, i) => preBlocks[Number(i)] ?? "")
     .replace(/\u00a0/g, " ")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
