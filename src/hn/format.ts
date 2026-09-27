@@ -176,7 +176,8 @@ export function formatSearch(result: AlgoliaSearchResponse): string {
   }
 
   result.hits.forEach((hit, index) => {
-    lines.push(`${index + 1}. ${formatHit(hit)}`);
+    const rank = result.page * result.hitsPerPage + index + 1;
+    lines.push(`${rank}. ${formatHit(hit)}`);
     lines.push("");
   });
 
