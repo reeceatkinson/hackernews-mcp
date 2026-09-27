@@ -280,7 +280,11 @@ export function createServer() {
       title: "Summarize the HN front page",
       description: "Ask the model to fetch and summarize current top Hacker News stories",
       argsSchema: {
-        count: z.string().regex(/^[1-9]\d?$/).optional().describe("How many stories to include (default 15)"),
+        count: z
+          .string()
+          .regex(/^([1-9]|[1-4]\d|50)$/)
+          .optional()
+          .describe("How many stories to include (1-50, default 15)"),
       },
     },
     ({ count }) => ({
