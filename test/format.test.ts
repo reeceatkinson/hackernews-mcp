@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { formatItem, formatStoryList, formatUser } from "../src/hn/format";
-import type { HnItem, HnUser } from "../src/hn/types";
+import { formatItem, formatSearch, formatStoryList, formatUser } from "../src/hn/format";
+import type { AlgoliaHit, AlgoliaSearchResponse, HnItem, HnUser } from "../src/hn/types";
 
 const dropbox: HnItem = {
   by: "dhouston",
@@ -60,5 +60,59 @@ describe("formatUser", () => {
     expect(text).toContain("Karma: 2937");
     expect(text).toContain("Submissions: 3");
     expect(text).toContain("This is a test");
+  });
+});
+
+function searchHit(objectID: number): AlgoliaHit {
+  return {
+    objectID: String(objectID),
+    title: `Result ${objectID}`,
+    author: "alice",
+    points: 10,
+    num_comments: 1,
+    created_at: "2024-01-01T00:00:00.000Z",
+  };
+}
+
+function searchPage(
+  pageNum: number,
+  hitsPerPage: number,
+  hits: AlgoliaHit[],
+  nbHits = 60,
+  nbPages = 3,
+  query = "test",
+): AlgoliaSearchResponse {
+  return { hits, page: pageNum, nbHits, nbPages, hitsPerPage, query };
+}
+
+function hitsRange(start: number, count: number): AlgoliaHit[] {
+  return Array.from({ length: count }, (_, i) => searchHit(start + i));
+}
+
+describe("formatSearch", () => {
+  it("numbers page 0 starting at 1", () => {
+    const text = formatSearch(searchPage(0, 20, hitsRange(1, 20)));
+    expect(text).toContain("page 1/3");
+    expect(text).toMatch(/^1\. Result 1$/m);
+    expect(text).toMatch(/^20\. Result 20$/m);
+    expect(text).not.toMatch(/^21\. /m);
+  });
+
+  it("continues the global rank across pages (page 1, full page)", () => {
+    const text = formatSearch(searchPage(1, 20, hitsRange(21, 20)));
+    expect(text).toContain("page 2/3");
+    expect(text).toMatch(/^21\. Result 21$/m);
+    expect(text).toMatch(/^40\. Result 40$/m);
+    expect(text).not.toMatch(/^1\. Result 21$/m);
+    expect(text).not.toMatch(/^20\. Result 40$/m);
+  });
+
+  it("continues the global rank onto a partial last page using hitsPerPage as the stride", () => {
+    const text = formatSearch(searchPage(1, 20, hitsRange(21, 5)));
+    expect(text).toContain("page 2/3");
+    expect(text).toMatch(/^21\. Result 21$/m);
+    expect(text).toMatch(/^25\. Result 25$/m);
+    expect(text).not.toMatch(/^1\. /m);
+    expect(text).not.toMatch(/^26\. /m);
   });
 });
