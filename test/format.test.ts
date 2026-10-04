@@ -115,4 +115,32 @@ describe("formatSearch", () => {
     expect(text).not.toMatch(/^1\. /m);
     expect(text).not.toMatch(/^26\. /m);
   });
+
+  it("clamps an out-of-range requested page to the last page in the header (1 hit, asked page 10)", () => {
+    const text = formatSearch(searchPage(10, 20, [], 1, 1, "rust async runtime internals 2024"));
+    expect(text).toContain("page 1/1");
+    expect(text).not.toMatch(/page 11\/1/);
+    expect(text).toContain("No results.");
+  });
+
+  it("clamps the displayed page to 1 when nbPages is 0 (zero-hit query)", () => {
+    const text = formatSearch({
+      hits: [],
+      page: 5,
+      nbHits: 0,
+      nbPages: 0,
+      hitsPerPage: 20,
+      query: "zxqwkjnotaword",
+    });
+    expect(text).toContain("page 1/1");
+    expect(text).not.toMatch(/page 6\/1/);
+    expect(text).toContain("No results.");
+  });
+
+  it("does not clamp the numerator on the last valid in-range page (page = nbPages - 1)", () => {
+    const text = formatSearch(searchPage(2, 20, hitsRange(41, 20), 60, 3, "test"));
+    expect(text).toContain("page 3/3");
+    expect(text).toMatch(/^41\. Result 41$/m);
+    expect(text).toMatch(/^60\. Result 60$/m);
+  });
 });

@@ -164,9 +164,11 @@ export function formatCommentTree(root: HnItem, tree: CommentNode[], truncated: 
 }
 
 export function formatSearch(result: AlgoliaSearchResponse): string {
+  const totalPages = Math.max(result.nbPages, 1);
+  const pageNumber = Math.min(Math.max(result.page + 1, 1), totalPages);
   const lines = [
     `# Search: ${result.query || "(empty)"}`,
-    `${result.nbHits} hits · page ${result.page + 1}/${Math.max(result.nbPages, 1)}`,
+    `${result.nbHits} hits · page ${pageNumber}/${totalPages}`,
     "",
   ];
 
