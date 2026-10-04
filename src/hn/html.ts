@@ -35,10 +35,11 @@ export function htmlToText(input: string): string {
       return `\n\u0000pre${preBlocks.length - 1}\u0000\n`;
     })
     .replace(/<\s*a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\s*\/\s*a\s*>/gi, (_m, href, label) => {
-      const text = decodeEntities(String(label).replace(/<[^>]+>/g, "")).trim();
+      const rawLabel = String(label).replace(/<[^>]+>/g, "").trim();
       const safe = safeHttpUrl(String(href));
-      if (!safe) return text;
-      return text && text !== safe ? `${text} (${safe})` : safe;
+      if (!safe) return rawLabel;
+      const decodedLabel = decodeEntities(rawLabel);
+      return decodedLabel && decodedLabel !== safe ? `${rawLabel} (${safe})` : safe;
     })
     .replace(/<[^>]+>/g, "");
 
