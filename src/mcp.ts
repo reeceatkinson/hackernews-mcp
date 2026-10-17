@@ -306,7 +306,11 @@ export function createServer() {
       title: "Explain an HN story",
       description: "Fetch a story and its comments, then explain the discussion",
       argsSchema: {
-        id: z.string().regex(/^\d{1,10}$/).describe("HN item ID"),
+        id: z
+          .string()
+          .regex(/^\d{1,10}$/)
+          .refine((v) => parseItemId(v) != null, "HN item ID must be in 1..MAX_ITEM_ID")
+          .describe("HN item ID"),
       },
     },
     ({ id }) => ({
