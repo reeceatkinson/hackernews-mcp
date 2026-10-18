@@ -141,6 +141,7 @@ export function formatCommentTree(root: HnItem, tree: CommentNode[], truncated: 
       const item = node.item;
       if (item.deleted) {
         lines.push(`${indent}- [${item.id}] [deleted]`);
+        if (node.replies.length) walk(node.replies, depth + 1);
         continue;
       }
       const author = item.by ?? "unknown";
