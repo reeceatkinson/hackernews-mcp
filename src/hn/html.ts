@@ -51,6 +51,20 @@ export function htmlToText(input: string): string {
     .trim();
 }
 
+/**
+ * Decode HTML entities in a plain-text HN field (e.g. a story title) without
+ * stripping literal `<...>` spans. Titles are user-typed plain text, never
+ * server-rendered HTML, so the `<[^>]+>` tag strip performed by `htmlToText`
+ * is not safe here: it deletes genuine characters the HN site displays
+ * (e.g. `List<T> implementation notes` -> `List implementation notes`).
+ * Entity decoding is still required because both the Firebase and Algolia
+ * APIs store some titles HTML-escaped (e.g. `The Origin of the &lt;blink&gt; Tag`).
+ */
+export function titleToText(input: string): string {
+  const source = input.length > MAX_HTML_CHARS ? input.slice(0, MAX_HTML_CHARS) : input;
+  return decodeEntities(source).replace(/\u00a0/g, " ").trim();
+}
+
 function decodeEntities(value: string): string {
   return value.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity: string) => {
     if (entity[0] === "#") {

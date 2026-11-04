@@ -1,6 +1,6 @@
 import { HN_SITE } from "./types";
 import type { AlgoliaHit, AlgoliaSearchResponse, CommentNode, HnItem, HnUser } from "./types";
-import { htmlToText, safeHttpUrl } from "./html";
+import { htmlToText, safeHttpUrl, titleToText } from "./html";
 
 export function itemUrl(id: number): string {
   return `${HN_SITE}/item?id=${id}`;
@@ -22,7 +22,7 @@ export function formatItem(item: HnItem, extras?: { pollOptions?: HnItem[] }): s
 
   const lines: string[] = [];
   const kind = item.type ?? "item";
-  const heading = item.title ? htmlToText(item.title) : `${kind} ${item.id}`;
+  const heading = item.title ? titleToText(item.title) : `${kind} ${item.id}`;
   lines.push(`# ${heading}`);
   lines.push(`ID: ${item.id}`);
   lines.push(`Type: ${kind}`);
@@ -74,7 +74,7 @@ export function formatStoryList(
 
   items.forEach((item, index) => {
     const rank = offset + index + 1;
-    const title = item.title ? htmlToText(item.title) : `(${item.type ?? "item"} ${item.id})`;
+    const title = item.title ? titleToText(item.title) : `(${item.type ?? "item"} ${item.id})`;
     const meta = [
       item.score != null ? `${item.score} pts` : null,
       item.by ? `by ${item.by}` : null,
@@ -112,7 +112,7 @@ export function formatUser(user: HnUser, recent?: HnItem[]): string {
     lines.push("", "## Recent public activity");
     for (const item of recent) {
       const label = item.title
-        ? htmlToText(item.title)
+        ? titleToText(item.title)
         : item.text
           ? truncate(htmlToText(item.text), 140)
           : `${item.type ?? "item"} ${item.id}`;
@@ -126,7 +126,7 @@ export function formatUser(user: HnUser, recent?: HnItem[]): string {
 
 export function formatCommentTree(root: HnItem, tree: CommentNode[], truncated: boolean): string {
   const header = root.title
-    ? `# Comments on: ${htmlToText(root.title)}`
+    ? `# Comments on: ${titleToText(root.title)}`
     : `# Comments on item ${root.id}`;
   const lines = [header, `HN: ${itemUrl(root.id)}`, ""];
 
@@ -190,9 +190,9 @@ function formatHit(hit: AlgoliaHit): string {
   const id = hit.objectID;
   const isComment = hit._tags?.includes("comment") || Boolean(hit.comment_text);
   const title = hit.title
-    ? htmlToText(hit.title)
+    ? titleToText(hit.title)
     : hit.story_title
-      ? `Comment on: ${htmlToText(hit.story_title)}`
+      ? `Comment on: ${titleToText(hit.story_title)}`
       : `${isComment ? "Comment" : "Item"} ${id}`;
   const meta = [
     hit.points != null ? `${hit.points} pts` : null,
