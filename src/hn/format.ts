@@ -101,7 +101,7 @@ export function formatUser(user: HnUser, recent?: HnItem[]): string {
     `Karma: ${user.karma}`,
     `Created: ${formatUnix(user.created)}`,
     `Profile: ${userUrl(user.id)}`,
-    `Submissions: ${user.submitted?.length ?? 0}`,
+    `Submitted items: ${user.submitted?.length ?? 0}`,
   ];
 
   if (user.about) {
