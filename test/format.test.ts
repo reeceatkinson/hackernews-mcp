@@ -58,7 +58,7 @@ describe("formatUser", () => {
     };
     const text = formatUser(user);
     expect(text).toContain("Karma: 2937");
-    expect(text).toContain("Submissions: 3");
+    expect(text).toContain("Submitted items: 3");
     expect(text).toContain("This is a test");
   });
 });

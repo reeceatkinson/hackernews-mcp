@@ -2,7 +2,7 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { HnClient } from "./hn/client";
 import { formatCommentTree, formatItem, formatSearch, formatStoryList, formatUser } from "./hn/format";
-import { HN_USERNAME_RE, MAX_ITEM_ID, STORY_FEEDS, isHnUsername, parseItemId, type StoryFeed } from "./hn/types";
+import { HN_USERNAME_RE, MAX_ITEM_ID, STORY_FEEDS, isHnUsername, parseItemId, type HnItem, type StoryFeed } from "./hn/types";
 
 const feedSchema = z.enum(STORY_FEEDS);
 const tagSchema = z.enum(["story", "comment", "poll", "pollopt", "show_hn", "ask_hn", "front_page", "job"]);
@@ -99,14 +99,14 @@ export function createServer() {
     {
       title: "Get HN user",
       description:
-        "Look up a Hacker News user profile: karma, about text, created date, and optionally recent public submissions. Usernames are case-sensitive. Only users with public activity exist in the API.",
+        "Look up a Hacker News user profile: karma, about text, created date, and optionally recent submissions (stories and polls, not comments). Usernames are case-sensitive. Only users with public activity exist in the API.",
       inputSchema: {
         username: usernameSchema,
         include_submissions: z
           .boolean()
           .default(false)
-          .describe("If true, hydrate a page of the user's recent submitted item IDs"),
-        submission_limit: z.number().int().min(1).max(30).default(10).describe("How many recent submissions to include"),
+          .describe("If true, include a page of the user's recent submissions (stories and polls, not comments)"),
+        submission_limit: z.number().int().min(1).max(30).default(10).describe("How many recent submissions (stories and polls) to include"),
       },
       annotations: readOnly,
     },
@@ -114,9 +114,20 @@ export function createServer() {
       return tool(async () => {
         const user = await hn.requireUser(username);
         if (!include_submissions) return formatUser(user);
-        const ids = (user.submitted ?? []).slice(0, submission_limit);
-        const recent = (await hn.getItems(ids)).filter((item): item is NonNullable<typeof item> => item !== null);
-        return formatUser(user, recent);
+        const ids = user.submitted ?? [];
+        const stride = Math.max(submission_limit * 4, 16);
+        const submissions: HnItem[] = [];
+        for (let start = 0; start < ids.length && submissions.length < submission_limit; start += stride) {
+          const batch = ids.slice(start, start + stride);
+          const items = await hn.getItems(batch);
+          for (const item of items) {
+            if (submissions.length >= submission_limit) break;
+            if (item && (item.type === "story" || item.type === "poll") && !item.deleted) {
+              submissions.push(item);
+            }
+          }
+        }
+        return formatUser(user, submissions);
       });
     },
   );
